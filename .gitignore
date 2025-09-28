@@ -1,0 +1,74 @@
+# Ignore build directories
+build/
+/bin/
+/obj/
+/out/
+/CMakeFiles/
+/CMakeCache.txt
+/*.cmake
+
+# Ignore IDE and editor files
+.vscode/
+/.idea/
+/*.swp
+*.sublime-workspace
+*.sublime-project
+*~
+*.o
+*.d
+*.bin
+*.elf
+*.hex
+*.srec
+*.list
+*.map
+*.stylecheck
+generated.*.ld
+.gdb_history
+.DS_Store
+venv/
+build/
+data.csv
+notes.md
+sdr
+env/
+STM32CubeF4/
+
+
+# Project files from idea/netbeans/eclipse
+nbproject/
+.idea/
+.project
+# Ignore compiled object files
+*.o
+*.obj
+*.elf
+*.out
+
+# Ignore compiled executable files
+*.exe
+*.bin
+*.hex
+ft601/lib/libftd3xx.so*
+
+
+# Ignore debug and release directories
+/debug/
+/release/
+
+# Ignore temporary files
+*.log
+*.bak
+*.tmp
+*.temp
+*.d
+
+# Ignore system files (macOS, Windows)
+.DS_Store
+Thumbs.db
+
+# Ignore dependency manager files (e.g., for CMake or other build systems)
+*.dmg
+*.tar.gz
+*.zip
+
