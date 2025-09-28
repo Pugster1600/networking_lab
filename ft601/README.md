@@ -1,7 +1,9 @@
 ## 0. Prereqs
 ```
 WSL
-
+FT601 driver - https://ftdichip.com/drivers/d3xx-drivers/ (windows for driver)
+FT601 dynamic library - https://ftdichip.com/drivers/d3xx-drivers/ (linux for dynamic linking)
+Place the .h files in inc, the 2 .so* files in lib
 ```
 
 ## 1. Build in FT601
@@ -12,8 +14,3 @@ cd build
 cmake ..
 make
 ```
-
-note: dont just blindy do it, ask what hte reason is and the reasons you are faililng
-
-NOTE: git might not be able to add symbol files for linking (symbols resolved at link time BUT definitions are resolved at run time)
-- function resolution, symbol resolution then definition resolution

@@ -74,3 +74,7 @@ SO
 - then we tell it the path of the dll -> -L..../lib
 - and the dll name aka -lftd3xx
 
+note: dont just blindy do it, ask what hte reason is and the reasons you are faililng
+
+NOTE: git might not be able to add symbol files for linking (symbols resolved at link time BUT definitions are resolved at run time)
+- function resolution, symbol resolution then definition resolution
