@@ -78,3 +78,55 @@ note: dont just blindy do it, ask what hte reason is and the reasons you are fai
 
 NOTE: git might not be able to add symbol files for linking (symbols resolved at link time BUT definitions are resolved at run time)
 - function resolution, symbol resolution then definition resolution
+
+CPP properties
+- > c/c++: edit configurations (JSON)
+- click the edit configurations (JSOn one)
+
+user uses an api to ask the os to use the driver
+
+make connections yourself to better understand
+- that is what school does not teach you to do 
+- aka systems level stuff connection sbetween related concepts
+
+since vms are kinda like a subdirectory and can only see inside that subdirectoyr, if you do not forward another folder like say devices to it via like a mount or osmething then it will not be able to see it
+
+-------------------------------------------------
+# linux version
+cmake_minimum_required(VERSION 3.28)
+project(FT601)
+
+# C++ standards
+set (CMAKE_CXX_STANDARD 17)
+set (CMAKE_CXX_STANDARD_REQUIRED ON)
+set (CMAKE_C_STANDARD 17)
+set (CMAKE_C_STANDARD_REQUIRED ON)
+
+# add main.cpp as the main exexcutable for 
+set(INC ${CMAKE_CURRENT_SOURCE_DIR}/inc)
+set(SRC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(LIB ${CMAKE_CURRENT_SOURCE_DIR}/lib)
+
+# INC/header directory
+link_directories(${LIB}) # tells linker where to find the library to linker against (NOTE: ORDER MATTERS HERE!!!)
+add_executable(FT601 ${SRC}/main.c) #NOTE: include flags like def CPP if need be! (used in compiling)
+target_link_libraries(FT601 ftd3xx) #the actual file to look for in link_directories when building FT601, ftd3xx converted to libftd3xx.so when doing -lftd3xx flag
+target_include_directories(FT601 PRIVATE ${INC}) #private means only used for the target, not target linking against another target
+
+# Link it to your target
+set_target_properties(FT601 PROPERTIES
+  BUILD_RPATH "${CMAKE_SOURCE_DIR}/lib"
+)
+
+------------------------------------------------
+## 4. About cmake and dynamic linking
+1. MACROS
+2. linux vs windows dynamic linking
+- in linux, you can tell the kernel where to find the .so file
+- this is done with the RPATH in cmake
+- without rpath, cmake only looks for it in /lib and /usr/lib
+- in windows, you cannot do that, so you can either put it in path or you must include the .dll and .lib in the same path as the .exe
+- windows does not have a path for searching for .dll
+- instead it looks for current working direcotry, PATH or system direcotires
+- this is why .dll must be next to the .exe
+3. target include directories must be the last thing for some reason

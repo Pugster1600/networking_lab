@@ -6,6 +6,7 @@ build/
 /CMakeFiles/
 /CMakeCache.txt
 /*.cmake
+/build/
 
 # Ignore IDE and editor files
 .vscode/
@@ -49,7 +50,7 @@ nbproject/
 *.exe
 *.bin
 *.hex
-ft601/lib/libftd3xx.so*
+*libftd3xx.so*
 
 
 # Ignore debug and release directories
