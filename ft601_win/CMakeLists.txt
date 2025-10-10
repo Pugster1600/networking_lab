@@ -34,7 +34,10 @@ if (WIN32)
   endif()
 
   link_directories(${LIB})  # where ftd3xx.lib is located
-  add_executable(FT601 ${SRC}/main.c) 
+
+  #add_executable(FT601 ${SRC}/main.c) 
+  add_executable(FT601 ${SRC}/main.cpp) 
+  
   target_link_libraries(FT601 PRIVATE FTD3XXWU) #ft3
   target_compile_definitions(FT601 PRIVATE _WIN32 WIN32_LEAN_AND_MEAN) # macros basically
   target_include_directories(FT601 PRIVATE ${INC}) # THIS LINE MUST BE AT THE END FOR SOME REASON
@@ -52,9 +55,12 @@ else ()
   message (STATUS "STATUS: Building Linux configuration")
   # INC/header directory
   link_directories(${LIB}) # tells linker where to find the library to linker against (NOTE: ORDER MATTERS HERE!!!) - this needs to be first
-  add_executable(FT601 ${SRC}/main.c) #NOTE: include flags like def CPP if need be! (used in compiling)
+  
+  #add_executable(FT601 ${SRC}/main.c) 
+  add_executable(FT601 ${SRC}/main.cpp) #NOTE: include flags like def CPP if need be! (used in compiling) -> cplusplus macro/flag is defined by the compiler so we rae good
+  
   target_link_libraries(FT601 FTD3XXWU) #the actual file to look for in link_directories when building FT601, ftd3xx converted to libftd3xx.so when doing -lftd3xx flag
-  target_compile_definitions(FT601 PRIVATE _LINUX)
+  target_compile_definitions(FT601 PRIVATE _LINUX ) #add_compile_definition for ALL not justs the target
   target_include_directories(FT601 PRIVATE ${INC}) #private means only used for the target, not target linking against another target
   
   set_target_properties(FT601 PROPERTIES
@@ -62,3 +68,4 @@ else ()
   )
 endif ()
 
+#cmake -G "Ninja" .. -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ 

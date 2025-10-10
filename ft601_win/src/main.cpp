@@ -5,11 +5,14 @@
   #include "Types.h"
 #endif
 
-#include <stdio.h> //location resolved by the compiler when you tell it where to look for includes
-#include <stdlib.h>
-#include <stdint.h>
-#include "FTD3XX.h"
-#include <inttypes.h>
+extern "C" {
+  #include <stdio.h> //location resolved by the compiler when you tell it where to look for includes
+  #include <stdlib.h>
+  #include <stdint.h>
+  #include "FTD3XX.h"
+  #include <inttypes.h>
+}
+
 
 void displayDevices();
 

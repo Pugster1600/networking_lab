@@ -1,12 +1,12 @@
 ## 0. Prereqs
 ```
-WSL
+WSL - might have port forwarding issues
 FT601 driver - https://ftdichip.com/drivers/d3xx-drivers/ (windows for driver)
 FT601 dynamic library - https://ftdichip.com/drivers/d3xx-drivers/ (windows for dynamic linking)
 Just need FTD3XX.h
 ```
 
-## 1. Build FT601 in WSL
+## 1. Build FT601 in windows
 
 ```
 mkdir build
