@@ -213,3 +213,259 @@ else ()
     BUILD_RPATH "${CMAKE_SOURCE_DIR}/lib"
   )
 endif ()
+
+as of 10/11/2025, NOTE: write the dates down to better remember
+the wu driver is more recen tbut the 1.3 release actually works with the other files
+
+- as per https://ftdichip.com/utilities/#ft60x-configuration
+- the 1.4 version is more recent which uses the winusb drivers
+- usb controller when 1.3
+- usb device when 1.4
+- also in the readme for the winusb installation
+
+## Configuration
+- the write configuration thing is talking to the chip to configure it in a certain way based on the things in the GUI
+- such as the number of channels, clk speed and such
+
+
+## xc7z020 FPGA
+compare it to something that you know should work
+
+possible failure points right now are the boot options
+
+-----------------------------
+PLL can muliply or divide frequencies so that we can use various different frequencies without different crystals
+- this is used by both the tx and and rx
+
+VP, VN are not connected
+fpga_tck, fpga_tdp -> these are jtag? becuase not terminated but also not connected to anything -> yep they are jtag
+
+xc7z010clg400-1
+
+# porting an FPGA
+## FPGA pins
+- grouped into IO banks
+- only a specific voltage standard like 1.8 LVCMOS
+- only one voltage level at a time
+
+-only some certian pins can feed into the global clock network
+-analog pins
+- configuration pins like jtag
+- deicated TX and RX pins
+
+normal IO pins are felxible though as long as voltage standard matches
+
+Compare I/O availability (number and types of banks, voltage standards).
+
+Map required I/Os from the old FPGA to the new one.
+
+Identify missing or constrained signals — e.g. if UART2_TX had no suitable pin, you might need to drop or multiplex it.
+
+Modify your top-level module to remove or reassign those ports.
+
+Update the constraint file (.xdc/.ucf/.qsf) with the new pin assignments.
+
+Regenerate bitstream and verify with the board schematic.
+
+---------------------------
+120 pins on the old board
+80 pins on the new board
+- BUT the total utilization is >80
+
+so we know some of these are not going to work
+
+https://download.amd.com/adaptive-socs-and-fpgas/developer/adaptive-socs-and-fpgas/package-pinout-files/z7packages/xc7z010clg400pkg.txt
+
+we are using the alinx NOT xilinx one
+- so its a board not the chip itself
+- it has a bunch of extra features already on it
+
+banks share electrical routes
+- some banks are not available
+
+try to have them in the same bank if possible
+
+
+xilinx ip is pre-designed, pre-verified hardware block that performs a specific function — like a reusable component you drop into your design instead of coding it all yourself.
+
+such as memory, math/logic ie the dsp blocks, 
+
+fifo_generator_0 my_fifo (
+    .clk(clk),
+    .rst(rst),
+    .din(data_in),
+    .wr_en(wr_en),
+    .rd_en(rd_en),
+    .dout(data_out),
+    .full(full),
+    .empty(empty)
+);
+
+this is the instantiation
+
+| **Name**                 | **Full Form / Meaning**               | **Used For**                                               | **Notes**                                                                                               |
+| ------------------------ | ------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| **MIO**                  | **Multiplexed I/O**                   | Processor-side general-purpose I/O (PS section in Zynq).   | Controlled by the ARM processor, not by PL logic. Used for UART, SPI, I²C, SD, etc.                     |
+| **EMIO**                 | **Extended Multiplexed I/O**          | Processor I/O routed through programmable logic (PL).      | Lets PS peripherals access FPGA fabric pins.                                                            |
+| **DDR / DDRx**           | **Double Data Rate memory interface** | Memory interface signals — address, data, control, clocks. | Uses **dedicated DDR banks** (HP or dedicated memory interface banks). Must follow layout/timing rules. |
+| **HR**                   | **High-Range bank**                   | General I/O at up to 3.3 V.                                | Supports LVCMOS/LVTTL. Lower performance but higher voltage range.                                      |
+| **HP**                   | **High-Performance bank**             | High-speed I/O at lower voltages (1.2–1.8 V).              | Used for DDR, LVDS, and high-bandwidth interfaces.                                                      |
+| **PS**                   | **Processing System**                 | The ARM CPU subsystem (in Zynq, Zynq MPSoC).               | Separate from programmable logic (PL).                                                                  |
+| **PL**                   | **Programmable Logic**                | The FPGA fabric (user logic).                              | Where your HDL/IP designs go.                                                                           |
+| **GT / GTX / GTH / GTY** | **Gigabit Transceiver banks**         | High-speed serial links (e.g., PCIe, Ethernet, SATA).      | Dedicated differential TX/RX pairs, not normal GPIO.                                                    |
+| **XADC**                 | **Xilinx ADC**                        | Analog-to-digital converter inputs.                        | Dedicated analog pins (VP/VN, VAUXP/VAUXN).                                                             |
+| **VREF / VCCO**          | —                                     | Bank reference voltage and I/O supply voltage.             | Each bank has its own VCCO.                                                                             |
+| **CONFIG Bank**          | —                                     | Used for JTAG, SPI, BPI configuration during power-up.     | Often Bank 0, not freely assignable until after boot.                                                   |
+| **SYSMON**               | **System Monitor**                    | Internal temperature/voltage monitor analog pins.          | Shared with XADC inputs in some devices.                                                                |
+
+always test a baseline out
+
+
+
+when you remove a module, it still has that module driving the internal signals
+- so when you remove it it says it is still driving it along with something else
+
+so if you want to rmeove a port you can remove it then add an additional signal inside
+- this way so that its the exact same just removing the port
+
+------------------------------------
+1. how do you start talking with the adc
+- like it boots then what
+
+how do you tell adc when to start collecting data and stuff
+
+1. parallel mode or serial
+- parallel mode is multiple lines vs serial is saying using spi to get the data
+
+2. to start
+- adc waits for an external trigger
+
+3. end
+- fpga gets an end of conversion or some rdy signal or soemthing
+
+those serial pins can be configured as parallel or serial
+- if serial they are spi configed
+- if parallel, look at label 2
+
+clock driven and we configure the timing
+
+valid data presented on each ddr
+- so use the adc clk on the fpga to capture the data
+
+Provide ADC clock
+
+Connect your FPGA or clock generation hardware to drive the ADC clock (ENC+ / ENC−) at the appropriate rate (e.g., 20 MHz for 20 MS/s or appropriate divider) per datasheet.
+
+Ensure the ADC driver has good analog input front‑end (differential, proper termination, etc).
+
+Configure ADC via SPI
+
+Use the SPI port on the LTC2270 to set any mode (output format, range, power mode).
+
+For example, you might select DDR LVDS or CMOS output.
+
+Capture data in FPGA
+
+Use the ADC clock (or its derivative) as a capture clock in your FPGA.
+
+If DDR output: e.g., use ISERDESE2 (in Xilinx FPGAs) or equivalent to capture data on both edges.
+
+Align data correctly: the ADC datasheet gives setup/hold specs.
+
+Optional: determine frame/word boundaries
+
+Each conversion produces a word (or two words for dual channel). You need to map which bits correspond to channel A, channel B.
+
+The datasheet will show pin assignments and timing.
+
+If the conversion is continuous, you might not have a separate “EOC” signal; you treat each clock as a valid sample event.
+
+Buffer or process data
+
+Once captured, you can store the data in RAM, process in your FPGA, send to PC, etc.
+
+NOTE: need tsetup and thold on the fpga side so that we can propely sample
+
+when does the output of the adc clck begin so that the fpga can sample it
+- since the fpga uses an external clk to know when to sample
+- find this information out
+
+basically the adc is always sampling when it is on
+- we just need to make sure the adc is in parallel mode 
+1. parallel mode
+2. adc continously gathers data and outputs it on the fifo bus
+- the adc is supplying the differential clk signal
+
+t_setup = minimum time the data must be stable before the clock edge the FPGA samples on
+
+t_hold = minimum time the data must remain stable after the clock edge
+
+t_delay / t_OD = propagation delay from analog input → digital output
+
+So the FPGA should capture the ADC data:
+
+FPGA sample edge
+=
+ADC data valid
+≈
+ADC CLK rising/falling edge
++
+𝑡
+delay
+FPGA sample edge=ADC data valid≈ADC CLK rising/falling edge+t
+delay
+	​
+FPGA typically uses DDR or edge-aligned sampling:
+
+enc+ and enc-
+- also ain+ nad ain-
+- positive and negativ einput of the differential pair
+- this is where they sample
+- but we can also sample differnetial analog signals
+
+AIN is true analog input
+ENC is the connector that is connected to AIN
+
+
+AIN = analog input
+ENC = enable conversion
+- looking at the schematic, we can kinda see that enc is part of the enabel circuit
+
+we can look at the verilog code to see which clk is being used for adc
+
+if you have a signal driving multiple different things
+- understanding what you see form the oscillascope
+- then the signal will get weakened
+- we need to increase load voltage in order to actually see what is going on
+- but since the clk signal is driving something else it is not exactly what is going on
+
+differential pair constraint file and verilog
+- though there could be a chip on the fpga that combines the two and feeds it to the fpga
+
+check around pin 17 down
+- make sure power is on
+- also check if you need configuration/setup
+
+---------------------
+dc coupling shows both ac and dc signals
+ac coupling only shows ac signals
+
+$\omega = 2\pi f$
+
+sampled at 255 with the pic
+- now lets see if that is the case floating -> always test against a baseline case so ask yourself what is the baseline case
+- sure enough it does see 255 
+- so when we measure the miso line we see that the line is naturally high
+
+ddr is double data rate
+
+there are differnet voltage logic standards
+- like LVDS, CMOS etc
+- CMOS is noisy when sampling with the outside world but greater when just used in isolation like computer chips
+- these care IO digital standards which include USB etc
+- ie differential pairs and stuff
+
++/- pairs are usually lvds
+- since cmos is usually not differential
+- these differential pairs are just different electircal standards
+- like lvds might have a different votlage standard from usb differential

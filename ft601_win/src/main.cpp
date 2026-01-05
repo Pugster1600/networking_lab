@@ -19,8 +19,11 @@ void displayDevices();
 int main() {
   printf("What is going on guys\n"); //sanity check
   displayDevices();
-  system("powershell.exe");
+  //system("powershell.exe"); //need to make sure you close the terminal or else we get input/output errors
   return 0;
+  //rm: cannot remove 'build/FT601.exe': Input/output error
+  //rm: cannot remove 'build/ftd3xxwu.dll': Input/output error
+  //you need to read the release notes or something
 }
 
 void displayDevices(){
@@ -28,8 +31,8 @@ void displayDevices(){
   DWORD numDevs = 0; 
  
   ftStatus = FT_CreateDeviceInfoList(&numDevs); 
-  printf("testing");
-  printf("Number of devices: %lu\n", numDevs);
+  //printf("testing");
+  //printf("Number of devices: %lu\n", numDevs);
   if (!FT_FAILED(ftStatus) && numDevs > 0) 
   { 
     FT_HANDLE ftHandle = NULL; 
